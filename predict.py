@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
-import matplotlib.pyplot as plt
 import argparse
 
 
@@ -17,24 +16,19 @@ def check_file_ext(filename):
     return filename
 
 
-def plot(data):
-    """
-    Plot the data
-    :param data:
-    """
-    plt.scatter(data[:, 0], data[:, 1])
-    plt.xlabel('km')
-    plt.ylabel('price')
-    plt.title("Price on km")
-    plt.show()
+def estimate_price(mileage, theta0, theta1):
+    return theta0 + (theta1 * mileage)
 
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("filename", type=check_file_ext, help="CSV file path")
+    parser.add_argument("-t", "--thetas", help="CSV thetas file", type=check_file_ext, required=False)
     args = parser.parse_args()
-    data = np.genfromtxt(args.filename, delimiter=',', skip_header=1)
-    plot(data)
+    thetas = [0, 0]
+    if args.thetas is not None:
+        thetas = np.genfromtxt(args.thetas)
+    mileage = float(input())
+    print(estimate_price(mileage, thetas[0], thetas[1]))
 
 
 if __name__ == "__main__":

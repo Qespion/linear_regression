@@ -27,7 +27,7 @@ def main():
     thetas = [0, 0]
     if args.thetas is not None:
         thetas = np.genfromtxt(args.thetas)
-    mileage = float(input())
+    mileage = float(input("Enter a mileage for estimation: "))
     print(estimate_price(mileage, thetas[0], thetas[1]))
 
 

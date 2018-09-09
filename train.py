@@ -3,6 +3,7 @@
 
 import numpy as np
 import argparse
+import matplotlib.pyplot as plt
 
 
 def check_file_ext(filename):
@@ -24,7 +25,7 @@ def estimate_price(mileage, theta0, theta1):
     :param theta1:
     :return:
     """
-    return theta0 + (theta1 * mileage)
+    return theta0 + theta1 * mileage
 
 
 def cost_function(X, Y, theta0, theta1):
@@ -40,25 +41,26 @@ def gradient_descent(X, Y, theta0, theta1, lr):
     deriv_theta0 = 0
     deriv_theta1 = 0
     for i in range(N):
-        deriv_theta0 += -2 * X[i] * (Y[i] - (estimate_price(X[i], theta0, theta1)))
-        deriv_theta1 += -2 * (Y[i] - (estimate_price(X[i], theta0, theta1)))
-    theta0 -= (deriv_theta0 / N) * lr
-    theta1 -= (deriv_theta1 / N) * lr
+        # deriv_theta0 += -2 * X[i] * (Y[i] - (theta0 * X[i] + theta1))     
+        deriv_theta0 += -2 * X[i] * (Y[i] - (theta0 * X[i] + theta1))     
+        deriv_theta1 += -2 * (Y[i] - (theta0 * X[i] + theta1))        
+    theta0 = theta0 - lr * (deriv_theta0 / float(len(X)))
+    theta1 = theta1 - lr * (deriv_theta1 /  float(len(X)))
     return theta0, theta1
 
 
-def linear_regression(X, Y, theta0, theta1, lr=0.001, iters=10000):
+def linear_regression(X, Y,lr=0.001, iters=10000):
     """
     The linear regression function
     FUCK THIS SHIT
     """
-    cost_hist = []
+    theta0 = 0
+    theta1 = 0
+    loss = []
     for i in range(iters):
         theta0, theta1 = gradient_descent(X, Y, theta0, theta1, lr)
-        cost_hist.append(cost_function(X, Y, theta0, theta1))
-        if i % 10 == 0:
-            print("iter: " + str(i) + " cost: " + str(cost_hist))
-    return theta0, theta1
+        loss.append(cost_function(X, Y, theta0, theta1))
+    return theta0, theta1, loss
 
 
 def main():
@@ -66,13 +68,13 @@ def main():
     parser.add_argument("filename", type=check_file_ext, help="CSV file path")
     args = parser.parse_args()
     data = np.genfromtxt(args.filename, delimiter=',', skip_header=1)
+    data = data / 100000
     X = data[:, 0]
     Y = data[:, 1]
-    theta0 = 0
-    theta1 = 0
-    thetas = linear_regression(X, Y, theta0, theta1)
-    print(thetas)
-    np.savetxt("thetas.csv", thetas, delimiter=",")
+    theta0, theta1, loss = linear_regression(X, Y)
+    print('Final loss = ', loss[-1])
+    print('Thetas = ', [theta1 * 100000, theta0])
+    np.savetxt("thetas.csv", [theta1 * 100000, theta0], delimiter=",")
 
 
 if __name__ == "__main__":

@@ -41,7 +41,6 @@ def gradient_descent(X, Y, theta0, theta1, lr):
     deriv_theta0 = 0
     deriv_theta1 = 0
     for i in range(N):
-        # deriv_theta0 += -2 * X[i] * (Y[i] - (theta0 * X[i] + theta1))     
         deriv_theta0 += -2 * X[i] * (Y[i] - (theta0 * X[i] + theta1))     
         deriv_theta1 += -2 * (Y[i] - (theta0 * X[i] + theta1))        
     theta0 = theta0 - lr * (deriv_theta0 / float(len(X)))

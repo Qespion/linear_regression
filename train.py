@@ -71,9 +71,15 @@ def main():
     X = data[:, 0]
     Y = data[:, 1]
     theta0, theta1, loss = linear_regression(X, Y)
+    theta1 *= 100000
+    line_x = [min(X * 100000), max(X * 100000)]
+    line_y = [(theta0 * i) + theta1 for i in line_x]
+    plt.plot(line_x, line_y, 'b')
+    plt.plot(X * 100000, Y * 100000, 'ro')
+    plt.show()
     print('Final loss = ', loss[-1])
-    print('Thetas = ', [theta1 * 100000, theta0])
-    np.savetxt("thetas.csv", [theta1 * 100000, theta0], delimiter=",")
+    print('Thetas = ', [theta1, theta0])
+    np.savetxt("thetas.csv", [theta1, theta0], delimiter=",")
 
 
 if __name__ == "__main__":

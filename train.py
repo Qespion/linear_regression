@@ -5,7 +5,6 @@ import numpy as np
 import argparse
 import matplotlib.pyplot as plt
 
-
 def check_file_ext(filename):
     """
     Check file extension
@@ -28,27 +27,48 @@ def estimate_price(mileage, theta0, theta1):
     return theta0 + theta1 * mileage
 
 
+def normalize_data(X, Y):
+    norm_X = []
+    norm_Y = []
+    for i in X:
+        i = (i - min(X)) / (max(X) - min(X))
+        norm_X.append(i)
+    for i in Y:
+        i = (i - min(X)) / (max(X) - min(X))
+        norm_Y.append(i)
+    return norm_X, norm_Y
+
+def rev_normalize(X, norm_X, theta0):
+    return theta0 * (max(X) - min(X)) + min(X)
+
+
 def cost_function(X, Y, theta0, theta1):
     N = len(X)
-    err = 0.0
+    err = 0
     for i in range(N):
         err += (Y[i] - estimate_price(X[i], theta0, theta1)) ** 2
     return err / N
 
 
-def gradient_descent(X, Y, theta0, theta1, lr):
-    N = len(X)
-    deriv_theta0 = 0
-    deriv_theta1 = 0
-    for i in range(N):
-        deriv_theta0 += -2 * X[i] * (Y[i] - (theta0 * X[i] + theta1))     
-        deriv_theta1 += -2 * (Y[i] - (theta0 * X[i] + theta1))        
-    theta0 = theta0 - lr * (deriv_theta0 / float(len(X)))
-    theta1 = theta1 - lr * (deriv_theta1 /  float(len(X)))
-    return theta0, theta1
+def gradient_descent(X, Y, theta0, theta1):
+    M = len(X)
+    derivee_theta_0 = float(0)
+    derivee_theta_1 = float(0)
+    for i in range(0, len(X)):
+        derivee_theta_0 += float(((theta0 + (theta1 * X[i])) - float(Y[i])))
+        derivee_theta_1 += (((theta0 + (theta1 * X[i]))) - float(Y[i])) * float(X[i])
+    derivee_theta_0 = (1/M) * derivee_theta_0
+    derivee_theta_1 = (1/M) * derivee_theta_1
+    return [derivee_theta_0, derivee_theta_1]
 
 
-def linear_regression(X, Y,lr=0.001, iters=10000):
+def new_thetas(X, Y, theta0, theta1, lr):
+    [derivee_theta_0, derivee_theta_1] = gradient_descent(X, Y, theta0, theta1)
+    nouvelle_theta_0 = theta0 - (lr * derivee_theta_0)
+    nouvelle_theta_1 = theta1 - (lr * derivee_theta_1)
+    return [nouvelle_theta_0,nouvelle_theta_1]
+
+def linear_regression(X, Y,lr=0.001, iters=100000):
     """
     The linear regression function
     FUCK THIS SHIT
@@ -56,8 +76,8 @@ def linear_regression(X, Y,lr=0.001, iters=10000):
     theta0 = 0
     theta1 = 0
     loss = []
-    for i in range(iters):
-        theta0, theta1 = gradient_descent(X, Y, theta0, theta1, lr)
+    for _ in range(iters):
+        theta0, theta1 = new_thetas(X, Y, theta0, theta1, lr)
         loss.append(cost_function(X, Y, theta0, theta1))
     return theta0, theta1, loss
 
@@ -67,19 +87,19 @@ def main():
     parser.add_argument("filename", type=check_file_ext, help="CSV file path")
     args = parser.parse_args()
     data = np.genfromtxt(args.filename, delimiter=',', skip_header=1)
-    data = data / 100000
     X = data[:, 0]
     Y = data[:, 1]
-    theta0, theta1, loss = linear_regression(X, Y)
-    theta1 *= 100000
-    line_x = [min(X * 100000), max(X * 100000)]
-    line_y = [(theta0 * i) + theta1 for i in line_x]
+    norm_X, norm_Y = normalize_data(X, Y)
+    theta0, theta1, loss = linear_regression(norm_X, norm_Y)
+    theta0 = rev_normalize(X, norm_X, theta0)
+    line_x = [min(X), max(X)]
+    line_y = [(theta1 * i) + theta0 for i in line_x]
     plt.plot(line_x, line_y, 'b')
-    plt.plot(X * 100000, Y * 100000, 'ro')
+    plt.plot(X, Y, 'ro')
     plt.show()
     print('Final loss = ', loss[-1])
-    print('Thetas = ', [theta1, theta0])
-    np.savetxt("thetas.csv", [theta1, theta0], delimiter=",")
+    print('Thetas = ', [theta0, theta1])
+    np.savetxt("thetas.csv", [theta0, theta1], delimiter=",")
 
 
 if __name__ == "__main__":

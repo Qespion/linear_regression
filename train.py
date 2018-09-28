@@ -30,17 +30,20 @@ def estimate_price(mileage, theta0, theta1):
 def normalize_data(X, Y):
     norm_X = []
     norm_Y = []
+    if (min(X) <= 0 or min(Y) <= 0):
+        return X, Y
     for i in X:
-        i = (i - min(X)) / (max(X) - min(X))
-        norm_X.append(i)
+        # i = (i - min(X)) / (max(X) - min(X))
+        norm_X.append(i / 100000)
     for i in Y:
-        i = (i - min(X)) / (max(X) - min(X))
-        norm_Y.append(i)
+        # i = (i - min(X)) / (max(X) - min(X))
+        norm_Y.append(i / 100000)
     return norm_X, norm_Y
 
-def rev_normalize(X, norm_X, theta0):
-    return theta0 * (max(X) - min(X)) + min(X)
-
+def rev_normalize(X, Y, theta0):
+    if (min(X) <= 0 or min(Y) <= 0):
+        return theta0
+    return theta0 * 100000
 
 def cost_function(X, Y, theta0, theta1):
     N = len(X)
@@ -50,7 +53,7 @@ def cost_function(X, Y, theta0, theta1):
     return err / N
 
 
-def gradient_descent(X, Y, theta0, theta1):
+def deriv(X, Y, theta0, theta1):
     M = len(X)
     derivee_theta_0 = float(0)
     derivee_theta_1 = float(0)
@@ -62,13 +65,13 @@ def gradient_descent(X, Y, theta0, theta1):
     return [derivee_theta_0, derivee_theta_1]
 
 
-def new_thetas(X, Y, theta0, theta1, lr):
-    [derivee_theta_0, derivee_theta_1] = gradient_descent(X, Y, theta0, theta1)
-    nouvelle_theta_0 = theta0 - (lr * derivee_theta_0)
-    nouvelle_theta_1 = theta1 - (lr * derivee_theta_1)
-    return [nouvelle_theta_0,nouvelle_theta_1]
+def gradient_descent(X, Y, theta0, theta1, lr):
+    [derivee_theta_0, derivee_theta_1] = deriv(X, Y, theta0, theta1)
+    new_theta0 = theta0 - (lr * derivee_theta_0)
+    new_theta1 = theta1 - (lr * derivee_theta_1)
+    return [new_theta0,new_theta1]
 
-def linear_regression(X, Y,lr=0.001, iters=100000):
+def linear_regression(X, Y,lr=0.01, iters=10000):
     """
     The linear regression function
     FUCK THIS SHIT
@@ -77,7 +80,7 @@ def linear_regression(X, Y,lr=0.001, iters=100000):
     theta1 = 0
     loss = []
     for _ in range(iters):
-        theta0, theta1 = new_thetas(X, Y, theta0, theta1, lr)
+        theta0, theta1 = gradient_descent(X, Y, theta0, theta1, lr)
         loss.append(cost_function(X, Y, theta0, theta1))
     return theta0, theta1, loss
 
@@ -91,7 +94,7 @@ def main():
     Y = data[:, 1]
     norm_X, norm_Y = normalize_data(X, Y)
     theta0, theta1, loss = linear_regression(norm_X, norm_Y)
-    theta0 = rev_normalize(X, norm_X, theta0)
+    theta0 = rev_normalize(X, Y, theta0)
     line_x = [min(X), max(X)]
     line_y = [(theta1 * i) + theta0 for i in line_x]
     plt.plot(line_x, line_y, 'b')
